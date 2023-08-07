@@ -1,16 +1,14 @@
 pragma solidity =0.8.19;
 
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-
 import {RateLimitedLibrary, RateLimit} from "@src/RateLimitedLibrary.sol";
+import {RateLimitCommonLibrary} from "@src/RateLimitCommonLibrary.sol";
 
 /// @title abstract contract for putting a rate limit on how fast a contract
 /// can perform an action e.g. Minting
 /// @author Elliot Friedman
 abstract contract RateLimited {
-    using SafeCast for *;
     using RateLimitedLibrary for RateLimit;
+    using RateLimitCommonLibrary for RateLimit;
 
     /// @notice maximum rate limit per second governance can set for this contract
     uint256 public immutable MAX_RATE_LIMIT_PER_SECOND;
@@ -27,7 +25,7 @@ abstract contract RateLimited {
         uint128 _rateLimitPerSecond,
         uint128 _bufferCap
     ) {
-        rateLimit.lastBufferUsedTime = block.timestamp.toUint32(); /// only access struct directly to prevent overflow on buffer calc in setBufferCap
+        rateLimit.lastBufferUsedTime = uint32(block.timestamp); /// only access struct directly to prevent overflow on buffer calc in setBufferCap
         rateLimit.setBufferCap(_bufferCap);
         rateLimit.bufferStored = _bufferCap; /// manually set this as first call to setBufferCap sets it to 0
 

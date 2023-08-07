@@ -7,11 +7,11 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import "@forge-std/Test.sol";
 
 import {MockDynamicRateLimited} from "@test/mock/MockDynamicRateLimited.sol";
-import {DynamicRateLimitLibrary, DynamicRateLimit} from "@src/DynamicRateLimitLibrary.sol";
+import {DynamicRateLimitLibrary, RateLimit} from "@src/DynamicRateLimitLibrary.sol";
 
 contract UnitTestDynamicRateLimited is Test {
     using SafeCast for *;
-    using DynamicRateLimitLibrary for DynamicRateLimit;
+    using DynamicRateLimitLibrary for RateLimit;
 
     /// @notice event emitted when buffer cap is updated
     event BufferCapUpdate(uint256 oldBufferCap, uint256 newBufferCap);

@@ -3,13 +3,14 @@ pragma solidity =0.8.19;
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {RateLimited} from "@src/RateLimited.sol";
-import {DynamicRateLimitLibrary, DynamicRateLimit} from "@src/DynamicRateLimitLibrary.sol";
+import {RateLimitCommonLibrary} from "@src/RateLimitCommonLibrary.sol";
+import {DynamicRateLimitLibrary, RateLimit} from "@src/DynamicRateLimitLibrary.sol";
 
 contract MockDynamicRateLimited {
-    using SafeCast for *;
-    using DynamicRateLimitLibrary for DynamicRateLimit;
+    using DynamicRateLimitLibrary for RateLimit;
+    using RateLimitCommonLibrary for RateLimit;
 
-    DynamicRateLimit public rateLimit;
+    RateLimit public rateLimit;
 
     uint256 public startingTvl;
 
@@ -18,7 +19,7 @@ contract MockDynamicRateLimited {
         uint128 _bufferCap,
         uint128 _startingTvl
     ) {
-        rateLimit.lastBufferUsedTime = block.timestamp.toUint32(); /// only access struct directly to prevent overflow on buffer calc in setBufferCap
+        rateLimit.lastBufferUsedTime = uint32(block.timestamp); /// only access struct directly to prevent overflow on buffer calc in setBufferCap
         rateLimit.setBufferCap(_bufferCap);
         rateLimit.bufferStored = _bufferCap; /// manually set this as first call to setBufferCap sets it to 0
         rateLimit.setRateLimitPerSecond(_rateLimitPerSecond);
