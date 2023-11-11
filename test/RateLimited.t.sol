@@ -1,8 +1,6 @@
 pragma solidity =0.8.19;
 
-import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {Math} from "@src/Math.sol";
 
 import "@forge-std/Test.sol";
 
@@ -10,8 +8,6 @@ import {RateLimited} from "@src/RateLimited.sol";
 import {MockRateLimited} from "@test/mock/MockRateLimited.sol";
 
 contract UnitTestRateLimited is Test {
-    using SafeCast for *;
-
     /// @notice event emitted when buffer cap is updated
     event BufferCapUpdate(uint256 oldBufferCap, uint256 newBufferCap);
 

@@ -1,7 +1,5 @@
 pragma solidity =0.8.19;
 
-import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-
 import {RateLimited} from "@src/RateLimited.sol";
 import {RateLimitCommonLibrary} from "@src/RateLimitCommonLibrary.sol";
 import {DynamicRateLimitLibrary, RateLimit} from "@src/DynamicRateLimitLibrary.sol";
