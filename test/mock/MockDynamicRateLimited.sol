@@ -1,8 +1,8 @@
 pragma solidity =0.8.19;
 
-import {RateLimited} from "@src/RateLimited.sol";
-import {RateLimitCommonLibrary} from "@src/RateLimitCommonLibrary.sol";
-import {DynamicRateLimitLibrary, RateLimit} from "@src/DynamicRateLimitLibrary.sol";
+import {RateLimited} from "@src/impl/RateLimited.sol";
+import {RateLimitCommonLibrary} from "@src/lib/RateLimitCommonLibrary.sol";
+import {DynamicRateLimitLibrary, RateLimit} from "@src/lib/DynamicRateLimitLibrary.sol";
 
 contract MockDynamicRateLimited {
     using DynamicRateLimitLibrary for RateLimit;

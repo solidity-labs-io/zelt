@@ -1,10 +1,10 @@
 pragma solidity =0.8.19;
 
-import {Math} from "@src/Math.sol";
+import {Math} from "@src/util/Math.sol";
 
 import "@forge-std/Test.sol";
 
-import {RateLimited} from "@src/RateLimited.sol";
+import {RateLimited} from "@src/impl/RateLimited.sol";
 import {MockRateLimited} from "@test/mock/MockRateLimited.sol";
 
 contract UnitTestRateLimited is Test {
