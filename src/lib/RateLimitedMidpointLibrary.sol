@@ -1,7 +1,7 @@
 pragma solidity =0.8.19;
 
-import {Math} from "@src/Math.sol";
-import {RateLimitMidPoint, RateLimitMidpointCommonLibrary} from "@src/RateLimitMidpointCommonLibrary.sol";
+import {Math} from "@src/util/Math.sol";
+import {RateLimitMidPoint, RateLimitMidpointCommonLibrary} from "@src/lib/RateLimitMidpointCommonLibrary.sol";
 
 /// @title library for putting a rate limit on how fast a contract
 /// can perform an action e.g. Minting and Burning with a midpoint
