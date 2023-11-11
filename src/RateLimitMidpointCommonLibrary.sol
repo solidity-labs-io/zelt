@@ -43,7 +43,6 @@ library RateLimitMidpointCommonLibrary {
     ) public view returns (uint256) {
         uint256 elapsed;
         unchecked {
-            /// if block.timestamp > uint32 max this will still work as bits gt 32 will be truncated
             elapsed = uint32(block.timestamp) - limit.lastBufferUsedTime;
         }
 
