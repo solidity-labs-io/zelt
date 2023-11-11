@@ -12,3 +12,7 @@ docs/
 
 # Dotenv file
 .env
+
+.certora_internal/
+
+.DS_Store
