@@ -63,6 +63,10 @@ abstract contract RateLimitedMidpoint {
     /// then sets the new rate limit per second
     /// @param newRateLimitPerSecond new rate limit per second
     function _setRateLimitPerSecond(uint128 newRateLimitPerSecond) internal {
+        require(
+            newRateLimitPerSecond <= MAX_RATE_LIMIT_PER_SECOND,
+            "RateLimited: rateLimitPerSecond too high"
+        );
         rateLimit.setRateLimitPerSecond(newRateLimitPerSecond);
     }
 
