@@ -70,6 +70,8 @@ invariant midPointLtBufferCap()
 invariant midPointHalfBufferCap()
     to_mathint(midPoint()) == to_mathint(bufferCap()) / 2;
 
+/// TODO figure out how to use a struct with a ghost
+
 // ghost mathint countLBUTWrite {
 //     init_state axiom countLBUTWrite == 0;
 // }
