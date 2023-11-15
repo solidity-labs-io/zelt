@@ -154,7 +154,7 @@ contract UnitTestDynamicRateLimited is Test {
             rlm.bufferStored() + accruedBuffer,
             rlm.bufferCap()
         );
-        assertEq(expectedBuffer, rlm.buffer());
+        assertEq(expectedBuffer, rlm.buffer(), "incorrect expected buffer");
     }
 
     function testReplenishWhenAtBufferCapHasNoEffect(
