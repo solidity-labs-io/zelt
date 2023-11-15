@@ -1,4 +1,4 @@
 @src/=src/
-@test/=test/
+@zelt-test/=test/
 @forge-std/=lib/forge-std/src/
 

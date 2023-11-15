@@ -5,7 +5,7 @@ import {Math} from "@src/util/Math.sol";
 import "@forge-std/Test.sol";
 
 import {RateLimited} from "@src/impl/RateLimited.sol";
-import {MockRateLimitedMidpoint} from "@test/mock/MockRateLimitedMidpoint.sol";
+import {MockRateLimitedMidpoint} from "@zelt-test/mock/MockRateLimitedMidpoint.sol";
 
 contract UnitTestRateLimitedMidpoint is Test {
     /// @notice event emitted when buffer cap is updated

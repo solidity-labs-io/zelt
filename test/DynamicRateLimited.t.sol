@@ -4,7 +4,7 @@ import {Math} from "@src/util/Math.sol";
 
 import "@forge-std/Test.sol";
 
-import {MockDynamicRateLimited} from "@test/mock/MockDynamicRateLimited.sol";
+import {MockDynamicRateLimited} from "@zelt-test/mock/MockDynamicRateLimited.sol";
 import {DynamicRateLimitLibrary, RateLimit} from "@src/lib/DynamicRateLimitLibrary.sol";
 
 contract UnitTestDynamicRateLimited is Test {
