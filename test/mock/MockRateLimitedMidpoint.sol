@@ -1,8 +1,8 @@
 pragma solidity =0.8.19;
 
-import {RateLimitMidPoint, RateLimitMidpointCommonLibrary} from "@src/lib/RateLimitMidpointCommonLibrary.sol";
-import {RateLimitedMidpointLibrary} from "@src/lib/RateLimitedMidpointLibrary.sol";
-import {RateLimitedMidpoint} from "@src/impl/RateLimitedMidpoint.sol";
+import {RateLimitMidPoint, RateLimitMidpointCommonLibrary} from "@zelt-src/lib/RateLimitMidpointCommonLibrary.sol";
+import {RateLimitedMidpointLibrary} from "@zelt-src/lib/RateLimitedMidpointLibrary.sol";
+import {RateLimitedMidpoint} from "@zelt-src/impl/RateLimitedMidpoint.sol";
 
 contract MockRateLimitedMidpoint is RateLimitedMidpoint {
     using RateLimitMidpointCommonLibrary for RateLimitMidPoint;

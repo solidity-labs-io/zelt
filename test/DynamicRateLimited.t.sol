@@ -1,11 +1,11 @@
 pragma solidity =0.8.19;
 
-import {Math} from "@src/util/Math.sol";
+import {Math} from "@zelt-src/util/Math.sol";
 
 import "@forge-std/Test.sol";
 
 import {MockDynamicRateLimited} from "@zelt-test/mock/MockDynamicRateLimited.sol";
-import {DynamicRateLimitLibrary, RateLimit} from "@src/lib/DynamicRateLimitLibrary.sol";
+import {DynamicRateLimitLibrary, RateLimit} from "@zelt-src/lib/DynamicRateLimitLibrary.sol";
 
 contract UnitTestDynamicRateLimited is Test {
     using DynamicRateLimitLibrary for RateLimit;

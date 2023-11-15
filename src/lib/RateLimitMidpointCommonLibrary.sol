@@ -1,6 +1,6 @@
 pragma solidity =0.8.19;
 
-import {Math} from "@src/util/Math.sol";
+import {Math} from "@zelt-src/util/Math.sol";
 
 /// @notice two rate storage slots per rate limit
 struct RateLimitMidPoint {

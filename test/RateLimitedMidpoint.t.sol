@@ -1,10 +1,10 @@
 pragma solidity =0.8.19;
 
-import {Math} from "@src/util/Math.sol";
+import {Math} from "@zelt-src/util/Math.sol";
 
 import "@forge-std/Test.sol";
 
-import {RateLimited} from "@src/impl/RateLimited.sol";
+import {RateLimited} from "@zelt-src/impl/RateLimited.sol";
 import {MockRateLimitedMidpoint} from "@zelt-test/mock/MockRateLimitedMidpoint.sol";
 
 contract UnitTestRateLimitedMidpoint is Test {

@@ -1,7 +1,7 @@
 pragma solidity =0.8.19;
 
-import {RateLimitedMidpointLibrary} from "@src/lib/RateLimitedMidpointLibrary.sol";
-import {RateLimitMidPoint, RateLimitMidpointCommonLibrary} from "@src/lib/RateLimitMidpointCommonLibrary.sol";
+import {RateLimitedMidpointLibrary} from "@zelt-src/lib/RateLimitedMidpointLibrary.sol";
+import {RateLimitMidPoint, RateLimitMidpointCommonLibrary} from "@zelt-src/lib/RateLimitMidpointCommonLibrary.sol";
 
 /// @title abstract contract for putting a rate limit on how fast a contract
 /// can perform an action e.g. Minting
