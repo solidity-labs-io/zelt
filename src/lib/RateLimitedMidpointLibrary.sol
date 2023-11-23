@@ -15,15 +15,6 @@ library RateLimitedMidpointLibrary {
     /// @notice event emitted when buffer gets replenished
     event BufferReplenished(uint256 amountReplenished, uint256 bufferRemaining);
 
-    /// @notice event emitted when buffer cap is updated
-    event BufferCapUpdate(uint256 oldBufferCap, uint256 newBufferCap);
-
-    /// @notice event emitted when rate limit per second is updated
-    event RateLimitPerSecondUpdate(
-        uint256 oldRateLimitPerSecond,
-        uint256 newRateLimitPerSecond
-    );
-
     /// @notice the method that enforces the rate limit.
     /// Decreases buffer by "amount".
     /// If buffer is <= amount, revert
