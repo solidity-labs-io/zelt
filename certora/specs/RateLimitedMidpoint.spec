@@ -12,6 +12,18 @@ methods {
     function bufferStored() external returns (uint256) envfree;
 }
 
+function uint32Max() returns uint256 {
+    return 2 ^ 32 - 1;
+}
+
+function absDelta(mathint a, mathint b) returns mathint {
+    if (a > b) {
+        return a - b;
+    }
+
+    return b - a;
+}
+
 /// ensure we can reach assert false for all external calls
 
 // rule sanity(method f) {
@@ -44,6 +56,7 @@ methods {
 /// 5). midpoint == bufferCap / 2
 /// 6). always converges on midpoint
 
+/// 1). buffer() <= bufferCap
 /// buffer must be non zero for this to work
 invariant bufferLteBufferCap(env e)
     (bufferCap() != 0) => (buffer(e) <= assert_uint256(bufferCap())) {
@@ -53,6 +66,7 @@ invariant bufferLteBufferCap(env e)
         }
     }
 
+/// 2). bufferStored <= bufferCap
 /// if buffercap is non-zero, bufferStored <= bufferCap
 invariant bufferStoredLteBufferCap(env e)
     (bufferCap() > 0) => (to_mathint(bufferStored()) <= to_mathint(bufferCap())) {
@@ -61,37 +75,21 @@ invariant bufferStoredLteBufferCap(env e)
         }
     }
 
+/// 3). rateLimitPerSecond <= MAX_RATE_LIMIT_PER_SECOND
 invariant maxRateLimitPerSecond()
     to_mathint(rateLimitPerSecond()) <= to_mathint(MAX_RATE_LIMIT_PER_SECOND());
 
+/// 4). midpoint < bufferCap
 invariant midPointLtBufferCap()
-    (bufferCap() > 0) => midPoint() < bufferCap();
+    (bufferCap() > 0) => midPoint() < bufferCap() {
+        preserved {
+            requireInvariant midPointHalfBufferCap();
+        }
+    }
 
+/// 5). midpoint == bufferCap / 2
 invariant midPointHalfBufferCap()
     to_mathint(midPoint()) == to_mathint(bufferCap()) / 2;
-
-/// TODO figure out how to use a struct with a ghost
-
-// ghost mathint countLBUTWrite {
-//     init_state axiom countLBUTWrite == 0;
-// }
-
-// ghost mathint countBSWrite {
-//     init_state axiom countBSWrite == 0;
-// }
-
-// /* update ghost on changes to lastBufferUsedTime */
-// hook Sstore lastBufferUsedTime uint32 new_last_buffer_used_time (uint32 old_last_buffer_used_time) STORAGE {
-//   countLBUTWrite = countLBUTWrite + 1;
-// }
-
-// /* update ghost on changes to bufferStored */
-// hook Sstore bufferStored uint224 new_buffer_stored (uint224 old_buffer_stored) STORAGE {
-//   countBSWrite = countBSWrite + 1;
-// }
-
-// invariant bufferStoredAlwaysCausesLastBufferUsedTimeWrite()
-//     countBSWrite == countLBUTWrite;
 
 /// -------------------
 /// ------ Rules ------
@@ -139,26 +137,29 @@ filtered {
     assert lastBufferPre == buffer(e), "buffer state change";
 }
 
-// rule timePassingAccruesBuffer(env e1, env e2) {
-//     uint256 lastBufferEnv1 = buffer(e1);
-//     uint256 lastBufferEnv2 = buffer(e2);
+rule timePassingBufferConvergesOnMidpoint(env e1, env e2) {
+    mathint lastBufferEnv1 = to_mathint(buffer(e1));
+    mathint lastBufferEnv2 = to_mathint(buffer(e2));
 
-//     require rateLimitPerSecond() != 0;
+    /// e2 is ahead of e1
+    require (e1.block.timestamp < e2.block.timestamp);
 
-//     assert ((e1.block.timestamp > e2.block.timestamp))
-//          => lastBufferEnv1 >= lastBufferEnv2;
+    /// only allow e2 timestamps less than or equal to 2^32 - 1
+    require (e2.block.timestamp <= uint32Max());
 
-//     bool e1Gte2 = e1.block.timestamp > e2.block.timestamp;
-//     bool e2Gte1 = e2.block.timestamp > e1.block.timestamp;
+    /// last buffer used time is less than or equal to e1 timestamp
+    require lastBufferUsedTime() < e1.block.timestamp;
 
-//     assert (to_mathint(lastBufferEnv1) < to_mathint(bufferCap()) && e1Gte2) => lastBufferEnv1 > lastBufferEnv2;
-//     assert (to_mathint(lastBufferEnv2) < to_mathint(bufferCap()) && e2Gte1) => lastBufferEnv2 > lastBufferEnv1;
-// }
+    /// buffers cannot be the same
+    require lastBufferEnv1 != lastBufferEnv2;
+
+    assert absDelta(lastBufferEnv1, midPoint()) > absDelta(lastBufferEnv2, midPoint()), "buffer not converging on midpoint"; /// buffer converges on midpoint
+}
 
 rule lastBufferUsedTimeAlwaysMonotonicallyIncreasingDeplete(env e, uint256 amount) {
     uint256 lastBufferUsedTimePre = lastBufferUsedTime();
 
-    require ((2 ^ 32) - 1) >= e.block.timestamp; /// only allow timestamps less than or equal to 2^32 - 1
+    require uint32Max() >= e.block.timestamp; /// only allow timestamps less than or equal to 2^32 - 1
     require to_mathint(lastBufferUsedTimePre) < to_mathint(e.block.timestamp);
     require amount <= buffer(e);
 
@@ -172,7 +173,7 @@ rule lastBufferUsedTimeAlwaysMonotonicallyIncreasingDeplete(env e, uint256 amoun
 rule lastBufferUsedTimeAlwaysMonotonicallyIncreasingReplenish(env e, uint256 amount) {
     uint256 lastBufferUsedTimePre = lastBufferUsedTime();
 
-    require ((2 ^ 32) - 1) >= e.block.timestamp; /// only allow timestamps less than or equal to 2^32 - 1
+    require uint32Max() >= e.block.timestamp; /// only allow timestamps less than or equal to 2^32 - 1
     require to_mathint(lastBufferUsedTimePre) < to_mathint(e.block.timestamp);
     require amount <= buffer(e);
     require to_mathint(buffer(e)) < to_mathint(bufferCap());
@@ -191,7 +192,7 @@ filtered {
     uint256 lastBufferUsedTimePre = lastBufferUsedTime();
     uint256 bufferPre = buffer(e);
 
-    require ((2 ^ 32) - 1) >= e.block.timestamp; /// only allow timestamps less than or equal to 2^32 - 1
+    require uint32Max() >= e.block.timestamp; /// only allow timestamps less than or equal to 2^32 - 1
     require to_mathint(lastBufferUsedTimePre) < to_mathint(e.block.timestamp);
 
     calldataarg args;
