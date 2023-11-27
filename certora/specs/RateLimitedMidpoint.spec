@@ -16,6 +16,10 @@ function uint32Max() returns uint256 {
     return 2 ^ 32 - 1;
 }
 
+function uint112Max() returns uint256 {
+    return 2 ^ 112 - 1;
+}
+
 function absDelta(mathint a, mathint b) returns mathint {
     if (a > b) {
         return a - b;
@@ -23,15 +27,6 @@ function absDelta(mathint a, mathint b) returns mathint {
 
     return b - a;
 }
-
-/// ensure we can reach assert false for all external calls
-
-// rule sanity(method f) {
-//     env e;
-//     calldataarg args;
-//     f(e, args);
-//     assert false;
-// }
 
 /// State Transitions
 
@@ -54,7 +49,17 @@ function absDelta(mathint a, mathint b) returns mathint {
 /// 3). rateLimitPerSecond <= MAX_RATE_LIMIT_PER_SECOND
 /// 4). midpoint < bufferCap
 /// 5). midpoint == bufferCap / 2
-/// 6). always converges on midpoint
+/// 6). always converges on midpoint over time with non zero rate limit
+/// 7). buffer <= uint112Max
+/// 8). bufferCap <= uint112Max
+/// 9). lastBufferUsedTime updated when non view function is called, when buffer is ne midpoint
+/// 10). bufferStored changes when:
+/////       1. rate limit ne 0
+/////       2. buffer != midpoint
+/////       3. lastBufferUsedTime != block.timestamp
+/// 11). deplete: buffer -= amount
+/// 12). replenish: buffer += amount
+/// 13). setBufferCap: bufferStored <= bufferCap, (already covered by invariant #2)
 
 /// 1). buffer() <= bufferCap
 /// buffer must be non zero for this to work
@@ -90,6 +95,14 @@ invariant midPointLtBufferCap()
 /// 5). midpoint == bufferCap / 2
 invariant midPointHalfBufferCap()
     to_mathint(midPoint()) == to_mathint(bufferCap()) / 2;
+
+/// 7). buffer <= uint112Max
+invariant bufferLteUint112(env e)
+    to_mathint(buffer(e)) <= to_mathint(uint112Max());
+
+/// 8). bufferCap <= uint112Max
+invariant bufferCapLteUint112()
+    to_mathint(bufferCap()) <= to_mathint(uint112Max());
 
 /// -------------------
 /// ------ Rules ------
@@ -142,18 +155,18 @@ rule timePassingBufferConvergesOnMidpoint(env e1, env e2) {
     mathint lastBufferEnv2 = to_mathint(buffer(e2));
 
     /// e2 is ahead of e1
-    require (e1.block.timestamp < e2.block.timestamp);
-
     /// only allow e2 timestamps less than or equal to 2^32 - 1
-    require (e2.block.timestamp <= uint32Max());
-
     /// last buffer used time is less than or equal to e1 timestamp
-    require lastBufferUsedTime() < e1.block.timestamp;
-
     /// buffers cannot be the same
-    require lastBufferEnv1 != lastBufferEnv2;
-
-    assert absDelta(lastBufferEnv1, midPoint()) > absDelta(lastBufferEnv2, midPoint()), "buffer not converging on midpoint"; /// buffer converges on midpoint
+    /// buffer converges on midpoint if midpoint is half of buffer cap, and rate limit is non zero
+    assert (
+        (lastBufferEnv1 != lastBufferEnv2) &&
+        (e2.block.timestamp <= uint32Max()) &&
+        (e1.block.timestamp < e2.block.timestamp) &&
+        (lastBufferUsedTime() < e1.block.timestamp) &&
+        to_mathint(midPoint()) == (to_mathint(bufferCap()) / 2) &&
+        rateLimitPerSecond() != 0
+    ) => (absDelta(lastBufferEnv1, midPoint()) > absDelta(lastBufferEnv2, midPoint())), "buffer not converging on midpoint";
 }
 
 rule lastBufferUsedTimeAlwaysMonotonicallyIncreasingDeplete(env e, uint256 amount) {
@@ -207,4 +220,72 @@ filtered {
     uint256 lastBufferUsedTimePost = lastBufferUsedTime();
 
     assert lastBufferUsedTimePost > lastBufferUsedTimePre, "buffer used time incorrect, should be greater than pre";
+}
+
+/// only converges when setting rate limit per second, or when calling sync
+rule bufferStoredConvergesOnMidpoint(env e, method f)
+filtered {
+    f ->
+        f.selector == sig:sync().selector ||
+        f.selector == sig:setRateLimitPerSecond(uint128).selector
+} {
+    uint256 bufferStoredPre = bufferStored();
+    uint256 bufferPre = buffer(e);
+
+    require uint32Max() >= e.block.timestamp; /// only allow timestamps less than or equal to 2^32 - 1
+    require to_mathint(lastBufferUsedTime()) < to_mathint(e.block.timestamp);
+    require rateLimitPerSecond() != 0; /// ensure rate limit is non zero so that buffer changes
+    require bufferPre != midPoint();
+
+
+    requireInvariant midPointHalfBufferCap(); /// ensure sane midpoint
+    requireInvariant bufferLteUint112(e);
+    requireInvariant bufferCapLteUint112();
+
+    calldataarg args;
+
+    /// possible function calls:
+    ///  - deplete buffer
+    ///  - replenish buffer --- if already at bufferCap, no state changes
+    ///  - setBufferCap
+    ///  - setRateLimitPerSecond
+    f(e, args);
+
+    uint256 bufferStoredPost = bufferStored();
+
+    assert absDelta(bufferStoredPre, midPoint()) > absDelta(bufferStoredPost, midPoint()), "buffer stored not converging on midpoint";
+}
+
+/// only depletes or replenishes atomically when depleting or replenishing buffer
+rule bufferUpdatesDeplete(env e, uint256 amount) {
+    mathint bufferPre = to_mathint(buffer(e));
+
+    requireInvariant midPointHalfBufferCap(); /// ensure sane midpoint
+    requireInvariant bufferLteUint112(e);
+    requireInvariant bufferCapLteUint112();
+
+    calldataarg args;
+
+    depleteBuffer(e, amount);
+
+    mathint bufferPost = to_mathint(buffer(e));
+
+    assert (bufferPre - amount) == bufferPost, "buffer not decreased on replenish";
+}
+
+/// only depletes or replenishes atomically when depleting or replenishing buffer
+rule bufferUpdatesReplenish(env e, uint256 amount) {
+    mathint bufferPre = to_mathint(buffer(e));
+
+    requireInvariant midPointHalfBufferCap(); /// ensure sane midpoint
+    requireInvariant bufferLteUint112(e);
+    requireInvariant bufferCapLteUint112();
+
+    calldataarg args;
+
+    replenishBuffer(e, amount);
+
+    mathint bufferPost = to_mathint(buffer(e));
+
+    assert (bufferPre + amount) == bufferPost, "buffer not increased on replenish";
 }
