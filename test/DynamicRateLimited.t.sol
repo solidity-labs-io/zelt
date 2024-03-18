@@ -144,8 +144,10 @@ contract UnitTestDynamicRateLimited is Test {
         uint128 amountToReplenish,
         uint16 warpAmount
     ) public {
-        amountToDeplete = uint128(_bound(amountToDeplete, 0, rlm.buffer()));
-        amountToReplenish = uint128(_bound(amountToReplenish, 0, amountToDeplete));
+        amountToDeplete = uint128(_bound(amountToDeplete, 0, rlm.buffer() - 1));
+        amountToReplenish = uint128(
+            _bound(amountToReplenish, 0, amountToDeplete)
+        );
         testDepleteBuffer(amountToDeplete, 0);
         testReplenishBuffer(amountToReplenish, 0);
 
