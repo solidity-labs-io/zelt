@@ -52,8 +52,10 @@ function absDelta(mathint a, mathint b) returns mathint {
 /// 6). always converges on midpoint over time with non zero rate limit
 /// 7). buffer <= uint112Max
 /// 8). bufferCap <= uint112Max
-/// 9). lastBufferUsedTime updated when non view function is called, when buffer is ne midpoint
-/// 10). bufferStored changes when:
+/// 9). lastBufferUsedTime updated when non view function is called, when:
+///      - buffer is ne midpoint
+///      - lastBufferUsedTime != block.timestamp
+/// 10). bufferStored changes when non view function is called, when:
 /////       1. rate limit ne 0
 /////       2. buffer != midpoint
 /////       3. lastBufferUsedTime != block.timestamp
